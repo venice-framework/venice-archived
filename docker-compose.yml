@@ -1,0 +1,227 @@
+---
+version: "3.2"
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:5.4.1
+    hostname: zookeeper
+    container_name: zookeeper
+    # ports 2181, 2888, and 3888 are exposed by default
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  broker-1:
+    image: confluentinc/cp-kafka:5.4.1
+    hostname: broker-1
+    container_name: broker-1
+    depends_on:
+      - zookeeper
+    # port 9092 is exposed by default
+    environment:
+      # parameters here:
+      # https://kafka.apache.org/documentation/#configuration
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      # KAFKA_ADVERTISED_LISTENERS is a comma-separated list of listeners with their
+      # host/IP and port. This is the metadata that’s passed back to clients.
+      # https://www.confluent.io/blog/kafka-listeners-explained/
+      # the use of PLAINTEXT is related to the security.inter.broker.protocol:
+      # https://docs.confluent.io/current/installation/configuration/broker-configs.html
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker-1:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 100
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+
+  broker-2:
+    image: confluentinc/cp-kafka:5.4.1
+    hostname: broker-2
+    container_name: broker-2
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 2
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker-2:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 100
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+
+  broker-3:
+    image: confluentinc/cp-kafka:5.4.1
+    hostname: broker-3
+    container_name: broker-3
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 3
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker-3:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 100
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:5.4.1
+    hostname: schema-registry
+    container_name: schema-registry
+    depends_on:
+      - broker-1
+      - broker-2
+      - broker-3
+    # expose ports without publishing them to the host machine
+    # port 8081 is exposed by default
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      # zookeeper election is deprecated, use kafka instead
+      # https://docs.confluent.io/current/schema-registry/installation/config.html#kafkastore-bootstrap-servers
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://broker-1:9092,PLAINTEXT://broker-2:9092,PLAINTEXT://broker-3:9092
+      # Comma-separated list of listeners that listen for API requests over
+      # either HTTP or HTTPS. If a listener uses HTTPS, the appropriate SSL
+      # configuration parameters need to be set as well.
+      SCHEMA_REGISTRY_LISTENERS: "http://0.0.0.0:8081"
+      DEBUG: "true"
+
+#  producer:
+#    image: veniceframework/python-producer-test
+#    container_name: producer
+#    depends_on:
+#      - broker-1
+#      - broker-2
+#      - broker-3
+#      - schema-registry
+#    environment:
+#      BROKER: "broker-1:9092"
+#      SCHEMA_REGISTRY_HOST: "schema-registry"
+#      SCHEMA_REGISTRY_PORT: 8081
+#      # this is redundant but convenient
+#      SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
+#      TOPIC_NAME: "$TOPIC_NAME"
+
+  ksql-server:
+  ## In final version you might want to have a second ksqlserver running  https://github.com/confluentinc/ksql/blob/master/docker-compose.yml see that link for example
+    image: confluentinc/cp-ksql-server:5.4.1
+    hostname: ksql-server
+    container_name: ksql-server
+    depends_on:
+      - broker-1
+      - broker-2
+      - broker-3
+      - schema-registry
+    # no ports are exposed by default
+    expose:
+      - 8088
+    environment:
+      KSQL_LISTENERS: http://0.0.0.0:8088
+      KSQL_BOOTSTRAP_SERVERS: broker-1:9092,broker-2:9092,broker-3:9092
+      KSQL_KSQL_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      KSQL_KSQL_LOGGING_PROCESSING_STREAM_AUTO_CREATE: "true"
+      KSQL_KSQL_LOGGING_PROCESSING_TOPIC_AUTO_CREATE: "true"
+
+  kafka-connect:
+    image: confluentinc/cp-kafka-connect:5.4.1 
+    hostname: kafka-connect
+    container_name: kafka-connect
+    depends_on:
+      - broker-1
+      - broker-2
+      - broker-3
+      - schema-registry
+    # exposes ports 8083 and 9092 by default
+    environment:
+      # Required Kafka Connect Settings:
+      # https://docs.confluent.io/current/installation/docker/config-reference.html#required-kafka-connect-settings
+      #
+      # All Settings:
+      # https://docs.confluent.io/current/connect/references/allconfigs.html
+      #
+      ###### REQUIRED SETTINGS ######
+      CONNECT_BOOTSTRAP_SERVERS: broker-1:9092,broker-2:9092,broker-3:9092
+      CONNECT_GROUP_ID: 1
+      # The values for these three storage topics must be the same for all
+      # workers with the same group.id
+      CONNECT_CONFIG_STORAGE_TOPIC: "connect-1-config"
+      CONNECT_OFFSET_STORAGE_TOPIC: "connect-1-offsets"
+      CONNECT_STATUS_STORAGE_TOPIC: "connect-1-status"
+      # These control the format of the data that will be written to Kafka for
+      # source connectors or read from Kafka for sink connectors 
+      CONNECT_KEY_CONVERTER: "io.confluent.connect.avro.AvroConverter"
+      CONNECT_VALUE_CONVERTER: "io.confluent.connect.avro.AvroConverter"
+      # Converter class for internal values that implements the Converter interface
+      # I'm not sure what these do, actually, but they're required.
+      # These settings were used in
+      # https://github.com/confluentinc/demo-scene/blob/master/sonos/docker-compose.yml
+      # Maybe David got them from elsewhere
+      CONNECT_INTERNAL_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_INTERNAL_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_REST_ADVERTISED_HOST_NAME: "kafka-connect"
+      ###### END REQUIRED SETTINGS ######
+      # This is the default port 
+      CONNECT_REST_PORT: 8083
+      # These were not listed in the all settings page, but used in the demo above and tutorials
+      # https://docs.confluent.io/5.0.0/installation/docker/docs/installation/connect-avro-jdbc.html#starting-up-confluent-platform-and-kafka-connect
+      CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
+      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
+      # These should always be at least 3 for a production system
+      # The defaults are 3
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 3
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 3
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 3
+      # This was in the demo repo from above but not in the all settings page
+      #CONNECT_LOG4J_ROOT_LOGLEVEL: "INFO" 
+    # 
+
+  connector-init:
+    # You could put these commands in kafka-connect instead, but it may be harder to debug
+    # With these commands in a separate container, you can follow the logs for this container
+    # and the output would not be cluttered with that of kafka-connect's
+    image: alpine:3.11
+    container_name: connector-init
+    command:
+      - sh 
+      - -c
+      - |
+        apk add curl
+        echo "Waiting for kafka-connect to start listening"
+        while [ $$(curl -s -o /dev/null -w %{http_code} http://kafka-connect:8083/connectors) -eq 000 ] ; do 
+          echo -e $$(date) " Kafka Connect listener HTTP state: " $$(curl -s -o /dev/null -w %{http_code} http://kafka-connect:8083/connectors) " (waiting for 200)"
+          sleep 5 
+        done
+        echo "kafka-connect is ready"
+        nc -vz kafka-connect 8083
+        echo "Sleeping for 2 mins (TODO: https://github.com/venice-framework/venice-python/issues/12)"
+        sleep 2m
+        echo -e "\n--\n+> Creating postgres sink"
+        echo \
+        "{
+          \"name\" : \"postgres_buses_upsert_$TOPIC_NAME\",
+          \"config\" : {
+            \"connector.class\" : \"io.confluent.connect.jdbc.JdbcSinkConnector\",
+             \"connection.url\": \"jdbc:postgresql://$POSTGRES_HOST:$POSTGRES_PORT/$POSTGRES_DB\",
+             \"connection.user\": \"$POSTGRES_USER\",
+             \"connection.password\": \"$POSTGRES_PASSWORD\",
+             \"topics\": \"$TOPIC_NAME\",
+             \"auto.create\":\"true\",
+             \"auto.evolve\":\"true\",
+             \"insert.mode\": \"upsert\",
+             \"pk.mode\": \"record_key\"
+          }
+        }" | curl -s -X POST -d @- http://kafka-connect:8083/connectors -H "Content-Type: application/json" -w "\n"
+
+  postgres:
+    # https://hub.docker.com/_/postgres
+    # docker exec -it postgres psql --username=venice_user --dbname=buses
+    build: ./postgres
+    container_name: postgres
+    # exposes port 5432 by default
+    expose:
+      - $POSTGRES_PORT 
+    environment:
+      POSTGRES_USER: $POSTGRES_USER
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+      POSTGRES_DB: $POSTGRES_DB
+    restart: unless-stopped
+
+# licensing info for images: https://docs.confluent.io/current/installation/docker/image-reference.html
