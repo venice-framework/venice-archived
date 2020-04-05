@@ -101,7 +101,6 @@ services:
 #      TOPIC_NAME: "$TOPIC_NAME"
 
   ksql-server:
-  ## In final version you might want to have a second ksqlserver running  https://github.com/confluentinc/ksql/blob/master/docker-compose.yml see that link for example
     image: confluentinc/cp-ksql-server:5.4.1
     hostname: ksql-server
     container_name: ksql-server
@@ -150,10 +149,7 @@ services:
       CONNECT_KEY_CONVERTER: "io.confluent.connect.avro.AvroConverter"
       CONNECT_VALUE_CONVERTER: "io.confluent.connect.avro.AvroConverter"
       # Converter class for internal values that implements the Converter interface
-      # I'm not sure what these do, actually, but they're required.
-      # These settings were used in
-      # https://github.com/confluentinc/demo-scene/blob/master/sonos/docker-compose.yml
-      # Maybe David got them from elsewhere
+      # TODO: verify what these do
       CONNECT_INTERNAL_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
       CONNECT_INTERNAL_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
       CONNECT_REST_ADVERTISED_HOST_NAME: "kafka-connect"
@@ -173,6 +169,9 @@ services:
   connector-init:
     image: alpine:3.11
     container_name: connector-init
+    depends_on:
+      - kafka-connect 
+      - postgres 
     command:
       - sh 
       - -c
