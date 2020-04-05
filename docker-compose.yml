@@ -169,14 +169,8 @@ services:
       CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 3
       CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 3
       CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 3
-      # This was in the demo repo from above but not in the all settings page
-      #CONNECT_LOG4J_ROOT_LOGLEVEL: "INFO" 
-    # 
 
   connector-init:
-    # You could put these commands in kafka-connect instead, but it may be harder to debug
-    # With these commands in a separate container, you can follow the logs for this container
-    # and the output would not be cluttered with that of kafka-connect's
     image: alpine:3.11
     container_name: connector-init
     command:
