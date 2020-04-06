@@ -189,7 +189,7 @@ services:
         echo -e "\n--\n+> Creating postgres sink"
         echo \
         "{
-          \"name\" : \"postgres_buses_upsert_$TOPIC_NAME\",
+          \"name\" : \"postgres_${POSTGRES_DB}_$TOPIC_NAME\",
           \"config\" : {
             \"connector.class\" : \"io.confluent.connect.jdbc.JdbcSinkConnector\",
              \"connection.url\": \"jdbc:postgresql://$POSTGRES_HOST:$POSTGRES_PORT/$POSTGRES_DB\",
@@ -198,14 +198,14 @@ services:
              \"topics\": \"$TOPIC_NAME\",
              \"auto.create\":\"true\",
              \"auto.evolve\":\"true\",
-             \"insert.mode\": \"upsert\",
+             \"insert.mode\": \"insert\",
              \"pk.mode\": \"record_key\"
           }
         }" | curl -s -X POST -d @- http://kafka-connect:8083/connectors -H "Content-Type: application/json" -w "\n"
 
   postgres:
     # https://hub.docker.com/_/postgres
-    # docker exec -it postgres psql --username=venice_user --dbname=buses
+    # docker exec -it postgres psql --username=venice_user --dbname=MY_DB
     build: ./postgres
     container_name: postgres
     # exposes port 5432 by default
