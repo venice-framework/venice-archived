@@ -129,6 +129,9 @@ services:
       - broker-3
       - schema-registry
     # exposes ports 8083 and 9092 by default
+    # publish port to work with venice CLI 
+    ports:
+      - 8083
     environment:
       # Required Kafka Connect Settings:
       # https://docs.confluent.io/current/installation/docker/config-reference.html#required-kafka-connect-settings
