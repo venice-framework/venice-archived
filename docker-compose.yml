@@ -74,7 +74,7 @@ services:
     # port 8081 is exposed by default
     # publish port to work with venice CLI
     ports:
-      - 8081
+      - 8081:8081
     environment:
       SCHEMA_REGISTRY_HOST_NAME: schema-registry
       # zookeeper election is deprecated, use kafka instead
@@ -115,7 +115,7 @@ services:
     expose:
       - 8088
     ports:
-      - 8088
+      - 8088:8088
     environment:
       KSQL_LISTENERS: http://0.0.0.0:8088
       KSQL_BOOTSTRAP_SERVERS: broker-1:9092,broker-2:9092,broker-3:9092
@@ -135,7 +135,7 @@ services:
     # exposes ports 8083 and 9092 by default
     # publish port to work with venice CLI 
     ports:
-      - 8083
+      - 8083:8083
     environment:
       # Required Kafka Connect Settings:
       # https://docs.confluent.io/current/installation/docker/config-reference.html#required-kafka-connect-settings
