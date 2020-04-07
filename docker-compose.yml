@@ -71,8 +71,9 @@ services:
       - broker-1
       - broker-2
       - broker-3
-    # expose ports without publishing them to the host machine
     # port 8081 is exposed by default
+    # publish port to work with venice CLI
+      - 8081
     environment:
       SCHEMA_REGISTRY_HOST_NAME: schema-registry
       # zookeeper election is deprecated, use kafka instead
