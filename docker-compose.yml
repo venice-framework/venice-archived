@@ -73,6 +73,7 @@ services:
       - broker-3
     # port 8081 is exposed by default
     # publish port to work with venice CLI
+    ports:
       - 8081
     environment:
       SCHEMA_REGISTRY_HOST_NAME: schema-registry
@@ -112,6 +113,8 @@ services:
       - schema-registry
     # no ports are exposed by default
     expose:
+      - 8088
+    ports:
       - 8088
     environment:
       KSQL_LISTENERS: http://0.0.0.0:8088
