@@ -87,7 +87,7 @@ services:
       DEBUG: "true"
 
 #  producer:
-#    image: veniceframework/python-producer-test
+#    image: veniceframework/python-producer-test-key-string
 #    container_name: producer
 #    depends_on:
 #      - broker-1
@@ -203,9 +203,13 @@ services:
              \"connection.user\": \"$POSTGRES_USER\",
              \"connection.password\": \"$POSTGRES_PASSWORD\",
              \"topics\": \"$TOPIC_NAME\",
+             \"value.converter\": \"io.confluent.connect.avro.AvroConverter\",
+             \"value.converter.schema.registry.url\": \"http://schema-registry:8081\",
+             \"key.converter\": \"org.apache.kafka.connect.storage.StringConverter\",
+             \"key.converter.schema.registry.url\": \"http://schema-registry:8081\",
              \"auto.create\":\"true\",
              \"auto.evolve\":\"true\",
-             \"insert.mode\": \"insert\",
+             \"insert.mode\": \"upsert\",
              \"pk.mode\": \"record_key\"
           }
         }" | curl -s -X POST -d @- http://kafka-connect:8083/connectors -H "Content-Type: application/json" -w "\n"
