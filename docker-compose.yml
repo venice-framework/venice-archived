@@ -197,8 +197,6 @@ services:
       CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 3
       CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 3
       CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 3
-    volumes:
-      - ./created_connectors:/connect/postgres-source.json
     networks:
       - venice
 
