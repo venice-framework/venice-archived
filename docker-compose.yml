@@ -9,6 +9,12 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+    restart: always
+
+    volumes:
+      - ./data/zookeeper/data:/var/lib/zookeper/data"
+    networks:
+      - venice
 
   broker-1:
     image: confluentinc/cp-kafka:5.4.1
@@ -32,6 +38,11 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 100
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_LOG_DIRS: "/kafka/kafka-logs"
+    volumes:
+      - ./data/kafka1/data:/var/lib/kafka/data
+    networks:
+      - venice
 
   broker-2:
     image: confluentinc/cp-kafka:5.4.1
@@ -47,6 +58,12 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 100
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_LOG_DIRS: "/kafka/kafka-logs"
+
+    networks:
+      - venice
+    volumes:
+      - ./data/kafka2/data:/var/lib/kafka/data
 
   broker-3:
     image: confluentinc/cp-kafka:5.4.1
@@ -62,7 +79,12 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 100
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_LOG_DIRS: "/kafka/kafka-logs"
 
+    networks:
+      - venice
+    volumes:
+      - ./data/kafka3/data:/var/lib/kafka/data
   schema-registry:
     image: confluentinc/cp-schema-registry:5.4.1
     hostname: schema-registry
@@ -85,6 +107,8 @@ services:
       # configuration parameters need to be set as well.
       SCHEMA_REGISTRY_LISTENERS: "http://0.0.0.0:8081"
       DEBUG: "true"
+    networks:
+      - venice
 
   producer:
     image: veniceframework/python-producer-test-key-string
@@ -100,6 +124,8 @@ services:
       SCHEMA_REGISTRY_PORT: 8081
       SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
       TOPIC_NAME: "$TOPIC_NAME"
+    networks:
+      - venice
 
   ksql-server:
     image: confluentinc/cp-ksql-server:5.4.1
@@ -119,6 +145,8 @@ services:
       KSQL_KSQL_SCHEMA_REGISTRY_URL: http://schema-registry:8081
       KSQL_KSQL_LOGGING_PROCESSING_STREAM_AUTO_CREATE: "true"
       KSQL_KSQL_LOGGING_PROCESSING_TOPIC_AUTO_CREATE: "true"
+    networks:
+      - venice
 
   kafka-connect:
     image: confluentinc/cp-kafka-connect:5.4.1
@@ -169,6 +197,10 @@ services:
       CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 3
       CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 3
       CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 3
+    volumes:
+      - ./created_connectors:/connect/postgres-source.json
+    networks:
+      - venice
 
   connector-init:
     image: alpine:3.11
@@ -225,6 +257,10 @@ services:
       POSTGRES_PASSWORD: $POSTGRES_PASSWORD
       POSTGRES_DB: $POSTGRES_DB
     restart: unless-stopped
+    volumes:
+      - ./data/postgres/data:/var/lib/postgres/data
+    networks:
+      - venice
 
   ui:
     # https://hub.docker.com/r/obsidiandynamics/kafdrop
@@ -245,4 +281,10 @@ services:
       SCHEMAREGISTRY_CONNECT: http://schema-registry:8081
       #JMX_PORT:
       #HOST:
-# licensing info for confluent images: https://docs.confluent.io/current/installation/docker/image-reference.html
+    networks:
+      - venice
+
+networks:
+  venice:
+    driver: bridge
+  # licensing info for confluent images: https://docs.confluent.io/current/installation/docker/image-reference.html
