@@ -9,10 +9,11 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
-    restart: always
-
+    restart: unless-stopped
     volumes:
-      - ./data/zookeeper/data:/var/lib/zookeper/data"
+      - /var/lib/zookeeper/data:/var/lib/zookeeper/data
+      - /var/lib/zookeeper/log:/var/lib/zookeeper/log
+      - /var/log/zookeeper:/var/log/zookeeper
     networks:
       - venice
 
@@ -20,6 +21,8 @@ services:
     image: confluentinc/cp-kafka:5.4.1
     hostname: broker-1
     container_name: broker-1
+    restart: unless-stopped
+
     depends_on:
       - zookeeper
     # port 9092 is exposed by default
@@ -38,9 +41,9 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 100
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
-      KAFKA_LOG_DIRS: "/kafka/kafka-logs"
+
     volumes:
-      - ./data/kafka1/data:/var/lib/kafka/data
+      - ./data/broker-1/data:/var/lib/kafka/data
     networks:
       - venice
 
@@ -48,6 +51,8 @@ services:
     image: confluentinc/cp-kafka:5.4.1
     hostname: broker-2
     container_name: broker-2
+    restart: unless-stopped
+
     depends_on:
       - zookeeper
     environment:
@@ -58,17 +63,19 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 100
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
-      KAFKA_LOG_DIRS: "/kafka/kafka-logs"
+      # KAFKA_LOG_DIRS: ./data/broker-2/logs
+      # KAFKA_LOG_DIR: ./data/broker-2/logs
 
     networks:
       - venice
     volumes:
-      - ./data/kafka2/data:/var/lib/kafka/data
+      - ./data/broker-2/data:/var/lib/kafka/data
 
   broker-3:
     image: confluentinc/cp-kafka:5.4.1
     hostname: broker-3
     container_name: broker-3
+    restart: unless-stopped
     depends_on:
       - zookeeper
     environment:
@@ -79,12 +86,11 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 100
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
-      KAFKA_LOG_DIRS: "/kafka/kafka-logs"
-
     networks:
       - venice
     volumes:
-      - ./data/kafka3/data:/var/lib/kafka/data
+      - ./data/broker-3/data:/var/lib/kafka/data
+
   schema-registry:
     image: confluentinc/cp-schema-registry:5.4.1
     hostname: schema-registry
@@ -256,7 +262,7 @@ services:
       POSTGRES_DB: $POSTGRES_DB
     restart: unless-stopped
     volumes:
-      - ./data/postgres/data:/var/lib/postgres/data
+      - ./data/postgres:/var/lib/postgresql/data
     networks:
       - venice
 
