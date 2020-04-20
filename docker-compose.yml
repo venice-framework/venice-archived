@@ -41,7 +41,6 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 100
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
-
     volumes:
       - ./data/broker-1/data:/var/lib/kafka/data
     networks:
@@ -247,7 +246,9 @@ services:
              \"pk.fields\": \"ROWKEY\"
           }
         }" | curl -s -X POST -d @- http://kafka-connect:8083/connectors -H "Content-Type: application/json" -w "\n"
-
+    networks:
+      - venice    
+    
   postgres:
     # https://hub.docker.com/_/postgres
     # docker exec -it postgres psql --username=venice_user --dbname=MY_DB
@@ -290,5 +291,6 @@ services:
 
 networks:
   venice:
-    driver: bridge
-  # licensing info for confluent images: https://docs.confluent.io/current/installation/docker/image-reference.html
+    driver: bridge # bridge is the default        
+
+# licensing info for confluent images: https://docs.confluent.io/current/installation/docker/image-reference.html
