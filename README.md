@@ -31,7 +31,7 @@ To learn why we chose these pieces, [read our Case Study](https://venice-framewo
 
 ## Architecture
 
-![Venice Full Architecture](https://venice-framework.github.io/images/diagrams/VeniceFull.jpg)
+![Venice Full Architecture](venice-framework.github.io/images/diagrams/VeniceFull.jpg)
 _The Venice CLI manages the pipeline and can be used to attach containers, such as a producer, or launch the CLI for ksqlDB or PostgreSQL._
 
 ## When does it fit?
@@ -81,7 +81,7 @@ You can use your own or a Venice producer example.
 Open the `docker-compose.yml` file in a text editor.
 Uncomment the section for the producer so that `producer` aligns vertically with the other services.
 
-![producer](https://venice-framework.github.io/images/diagrams/Producer_Docker-Compose.jpg)
+![producer](venice-framework.github.io/images/diagrams/Producer_Docker-Compose.jpg)
 If you want to use your own producer, package it in a container and have it use the environment variables BROKER, TOPIC_NAME, and SCHEMA_REGISTRY_URL. Then, swap out `image: veniceframework/python-producer-test-key-string` for the image you want to use.
 
 ### Choose whether to insert or upsert the data into PostgreSQL
@@ -93,7 +93,7 @@ Open the `docker-compose.yml` file in a text editor if it is not yet open.
 
 The PostgreSQL pipeline uses `upsert` by default.
 Within the commands for the `connector-init` service, change `upsert` to `insert` if you want to use `insert` instead.
-![insert-upsert](https://venice-framework.github.io/images/diagrams/insert-upsert.jpg)
+![insert-upsert](venice-framework.github.io/images/diagrams/insert-upsert.jpg)
 
 Save and close the file.
 
