@@ -123,8 +123,6 @@ services:
       - broker-3
       - schema-registry
     # no ports are exposed by default
-    expose:
-      - 8088
     ports:
       - 8088:8088
     environment:
@@ -263,7 +261,9 @@ services:
       JVM_OPTS: "-Xms32M -Xmx64M"
       SERVER_PORT: 9000
       SERVER_SERVLET_CONTEXTPATH: "/"
-      #JMX_PORT: 
+      MESSAGE_FORMAT: AVRO
+      SCHEMAREGISTRY_CONNECT: http://schema-registry:8081
+      #JMX_PORT:
       #HOST:
     networks:
       - venice    
