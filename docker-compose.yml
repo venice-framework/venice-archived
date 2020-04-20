@@ -9,13 +9,20 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+    restart: unless-stopped
+    volumes:
+      - ./data/zookeper/data:/var/lib/zookeeper/data
+      - ./data/zookeper/log:/var/lib/zookeeper/log
+      - /var/log/zookeeper:/var/log/zookeeper
     networks:
-      - venice    
-  
+      - venice
+
   broker-1:
     image: confluentinc/cp-kafka:5.4.1
     hostname: broker-1
     container_name: broker-1
+    restart: unless-stopped
+
     depends_on:
       - zookeeper
     # port 9092 is exposed by default
@@ -34,13 +41,17 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 100
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+    volumes:
+      - ./data/broker-1/data:/var/lib/kafka/data
     networks:
-      - venice    
-  
+      - venice
+
   broker-2:
     image: confluentinc/cp-kafka:5.4.1
     hostname: broker-2
     container_name: broker-2
+    restart: unless-stopped
+
     depends_on:
       - zookeeper
     environment:
@@ -51,13 +62,19 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 100
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      # KAFKA_LOG_DIRS: ./data/broker-2/logs
+      # KAFKA_LOG_DIR: ./data/broker-2/logs
+
     networks:
-      - venice    
-  
+      - venice
+    volumes:
+      - ./data/broker-2/data:/var/lib/kafka/data
+
   broker-3:
     image: confluentinc/cp-kafka:5.4.1
     hostname: broker-3
     container_name: broker-3
+    restart: unless-stopped
     depends_on:
       - zookeeper
     environment:
@@ -69,8 +86,10 @@ services:
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 100
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
     networks:
-      - venice    
-    
+      - venice
+    volumes:
+      - ./data/broker-3/data:/var/lib/kafka/data
+
   schema-registry:
     image: confluentinc/cp-schema-registry:5.4.1
     hostname: schema-registry
@@ -94,8 +113,8 @@ services:
       SCHEMA_REGISTRY_LISTENERS: "http://0.0.0.0:8081"
       DEBUG: "true"
     networks:
-      - venice    
-  
+      - venice
+
   producer:
     image: veniceframework/python-producer-test-key-string
     container_name: producer
@@ -111,8 +130,8 @@ services:
       SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
       TOPIC_NAME: "$TOPIC_NAME"
     networks:
-      - venice    
-  
+      - venice
+
   ksql-server:
     image: confluentinc/cp-ksql-server:5.4.1
     hostname: ksql-server
@@ -123,8 +142,6 @@ services:
       - broker-3
       - schema-registry
     # no ports are exposed by default
-    expose:
-      - 8088
     ports:
       - 8088:8088
     environment:
@@ -134,8 +151,8 @@ services:
       KSQL_KSQL_LOGGING_PROCESSING_STREAM_AUTO_CREATE: "true"
       KSQL_KSQL_LOGGING_PROCESSING_TOPIC_AUTO_CREATE: "true"
     networks:
-      - venice    
-    
+      - venice
+
   kafka-connect:
     image: confluentinc/cp-kafka-connect:5.4.1
     hostname: kafka-connect
@@ -186,8 +203,8 @@ services:
       CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 3
       CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 3
     networks:
-      - venice    
-    
+      - venice
+
   connector-init:
     image: alpine:3.11
     container_name: connector-init
@@ -245,9 +262,11 @@ services:
       POSTGRES_PASSWORD: $POSTGRES_PASSWORD
       POSTGRES_DB: $POSTGRES_DB
     restart: unless-stopped
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
     networks:
-      - venice    
- 
+      - venice
+
   ui:
     # https://hub.docker.com/r/obsidiandynamics/kafdrop
     image: obsidiandynamics/kafdrop:3.24.0
@@ -263,13 +282,15 @@ services:
       JVM_OPTS: "-Xms32M -Xmx64M"
       SERVER_PORT: 9000
       SERVER_SERVLET_CONTEXTPATH: "/"
-      #JMX_PORT: 
+      MESSAGE_FORMAT: AVRO
+      SCHEMAREGISTRY_CONNECT: http://schema-registry:8081
+      #JMX_PORT:
       #HOST:
     networks:
-      - venice    
+      - venice
 
 networks:
   venice:
-    driver: bridge # bridge is the default        
-
+    driver: bridge
+  
 # licensing info for confluent images: https://docs.confluent.io/current/installation/docker/image-reference.html
