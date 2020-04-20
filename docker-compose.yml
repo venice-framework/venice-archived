@@ -291,6 +291,6 @@ services:
 
 networks:
   venice:
-    driver: bridge
-  
+    driver: bridge # bridge is the default        
+
 # licensing info for confluent images: https://docs.confluent.io/current/installation/docker/image-reference.html
