@@ -1,3 +1,5 @@
+![Venice Header](/images/VeniceHeader.png)
+
 # What is Venice?
 
 Venice is an open-source framework that enables users to deploy and manage stream processing pipelines. Venice abstracts away much of the complexity of creating and managing a pipeline, allowing developers to focus on application code rather than infrastructure.
@@ -31,8 +33,8 @@ To learn why we chose these pieces, [read our Case Study](https://venice-framewo
 
 ## Architecture
 
-![Venice Full Architecture](images/VeniceFull.jpg)
-_The Venice CLI manages the pipeline and can be used to attach containers, such as a producer, or launch the CLI for ksqlDB or PostgreSQL._
+![Venice Full Architecture](/images/VeniceFull.png)
+_The full Venice architecture - the Venice CLI manages the pipeline and can be used to attach containers, such as a producer, or launch the CLI for ksqlDB or PostgreSQL._
 
 ## When does it fit?
 
@@ -81,7 +83,8 @@ You can use your own or a Venice producer example.
 Open the `docker-compose.yml` file in a text editor.
 Uncomment the section for the producer so that `producer` aligns vertically with the other services.
 
-![producer](images/Producer_Docker-Compose.jpg)
+![Producer in Docker Compose file](/images/Producer_DockerCompose.png)
+
 If you want to use your own producer, package it in a container and have it use the environment variables BROKER, TOPIC_NAME, and SCHEMA_REGISTRY_URL. Then, swap out `image: veniceframework/python-producer-test-key-string` for the image you want to use.
 
 ### Choose whether to insert or upsert the data into PostgreSQL
@@ -93,7 +96,8 @@ Open the `docker-compose.yml` file in a text editor if it is not yet open.
 
 The PostgreSQL pipeline uses `upsert` by default.
 Within the commands for the `connector-init` service, change `upsert` to `insert` if you want to use `insert` instead.
-![insert-upsert](/images/insert-upsert.jpg)
+
+![insert-upsert line in Docker Compose file](/images/insert-upsert.png)
 
 Save and close the file.
 
