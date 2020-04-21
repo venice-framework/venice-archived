@@ -267,10 +267,10 @@ services:
     networks:
       - venice
 
-  ui:
+  kafka-ui:
     # https://hub.docker.com/r/obsidiandynamics/kafdrop
     image: obsidiandynamics/kafdrop:3.24.0
-    container_name: ui
+    container_name: kafka-ui
     ports:
       - 9000:9000
     depends_on:
