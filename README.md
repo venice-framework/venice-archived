@@ -4,8 +4,8 @@
 
 Venice is an open-source framework that enables users to deploy and manage stream processing pipelines. Venice abstracts away much of the complexity of creating and managing a pipeline, allowing developers to focus on application code rather than infrastructure.
 
-[gif]
-_A demo of deploying a pipeline where data is written to Kafka, aggregated in KSQL, and written to a Postgres database via Kafka Connect._
+![Venice CLI workflow](/images/workflow.gif)
+_A demo of the pipeline in action: display topics, launch the KSQL CLI, create and show data streams, create connection to Venice Postgres database, view tables in Postgres_
 
 ## Features
 
